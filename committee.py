@@ -11,7 +11,7 @@ class Committee(Cog, name = "Committee"):
         super().__init__()
 
     @command(name="join", help="Join a committee!")
-    async def join_committee(ctx: Context, committee_role: Role=None, user: Member=None):
+    async def join_committee(self, ctx: Context, committee_role: Role=None, user: Member=None):
         print(f"Adding @{user} to @{committee_role}")
         if user is None:
             user = ctx.author
@@ -25,7 +25,7 @@ class Committee(Cog, name = "Committee"):
 
     # notifies a committee's channel when someone has joined
     @Cog.listener("on_member_update")
-    async def notify_committee(before: Member, after: Member):
+    async def notify_committee(self, before: Member, after: Member):
         if len(before.roles) < len(after.roles):
             role = next(role for role in after.roles if role not in before.roles)
             if role.name.endswith(" Committee"):
