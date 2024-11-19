@@ -24,7 +24,7 @@ class LitmusTest(Cog, name = "Litmus Test"):
         return await super().cog_load()
 
     async def cog_unload(self):
-        await self.message.edit(self.DOWN_MESSAGE, view=None)
+        await self.message.edit(content=self.DOWN_MESSAGE, view=None)
         return await super().cog_unload()
 
     async def find_litmus_message(self) -> Message:

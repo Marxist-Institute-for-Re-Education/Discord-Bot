@@ -86,7 +86,7 @@ class ApproveButton(CCButton, emoji="✅"):
     async def callback(self, interaction: Interaction):
         embed = interaction.message.embeds[0]
         embed.color = Color.brand_green()
-        embed.set_footer(f"approved by {interaction.user.mention}")
+        embed.set_footer(text=f"approved by {interaction.user.mention}")
         await interaction.response.edit_message(view=None, embed=embed)
         await self.user.add_roles(GENERAL_MEMBER)
 
@@ -96,7 +96,7 @@ class FollowUpButton(CCButton, emoji="💬"):
         embed = interaction.message.embeds[0]
         user = interaction.guild.get_member(self.user)
         embed.color = Color.dark_red() if user is None else Color.yellow()
-        embed.set_footer(f"being followed up by {interaction.user.mention}")
+        embed.set_footer(text=f"being followed up by {interaction.user.mention}")
         await interaction.response.edit_message(view=None, embed=embed)
         # create private thread
         welcome_channel: TextChannel = interaction.guild.get_channel(WELCOME.id)
@@ -117,7 +117,7 @@ class DenyButton(CCButton, emoji="❌"):
     async def callback(self, interaction: Interaction):
         await interaction.response.send_modal(DenyModal(self.user))
         embed = interaction.message.embeds[0]
-        embed.set_footer(f"Denied by {interaction.user.mention}")
+        embed.set_footer(text=f"Denied by {interaction.user.mention}")
         await interaction.followup.edit_message(embed=embed)
         # dm user
         pass
