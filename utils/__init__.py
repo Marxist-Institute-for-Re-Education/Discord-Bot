@@ -1,4 +1,4 @@
-from typing import Optional, Type, Literal, List
+from typing import Optional, Type, Literal, List, Union
 from typing_extensions import Self
 
 import discord.ui as dc
@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 
-def is_lit_chair(value: Member | Interaction | Context) -> bool:
+def is_lit_chair(value: Union[Member, Interaction, Context]) -> bool:
     user: Member
     if isinstance(value, Member):
         user = value
