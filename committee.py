@@ -25,7 +25,7 @@ class Committee(Cog, name = "Committee"):
 
     # notifies a committee's channel when someone has joined
     @Cog.listener("on_member_update")
-    async def notify_committee(before: Member, after: Member):
+    async def notify_committee(self, before: Member, after: Member):
         if len(before.roles) < len(after.roles):
             role = next(role for role in after.roles if role not in before.roles)
             if role.name.endswith(" Committee"):
