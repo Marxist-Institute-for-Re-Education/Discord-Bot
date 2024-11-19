@@ -1,5 +1,5 @@
 from typing import Optional, Type, Literal, List
-from typing_extensions import Self, Type
+from typing_extensions import Self
 
 import discord.ui as dc
 from discord import Member, Guild, Role, PartialEmoji, Interaction, Object
@@ -60,7 +60,7 @@ def require_non_member(user: Member) -> bool:
 def interacter_has_role(role: Object, name: str):
     async def check(interaction: Interaction) -> bool:
         return require_role(interaction.user, role, name)
-    def decorator(cls: type[dc.Item | dc.View]):
+    def decorator(cls: Type[dc.Item | dc.View]):
         cls.interaction_check = check
         return cls
     return decorator
@@ -88,7 +88,7 @@ class ModalButton(dc.Button):
     EMOJI: PartialEmoji
     MODAL_CLASS: Type[Modal]
 
-    def __init_subclass__(cls, *, emoji: str, modal: type[Modal]):
+    def __init_subclass__(cls, *, emoji: str, modal: Type[Modal]):
         cls.EMOJI = PartialEmoji.from_str(emoji)
         cls.MODAL_CLASS = modal
 
