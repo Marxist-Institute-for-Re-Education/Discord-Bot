@@ -22,11 +22,11 @@ bot.setup_hook = setup_hook
 
 @bot.command(name="reload", hidden=True)
 async def reload(ctx: Context):
+    print("~~~~~~~~~~ reloading ~~~~~~~~~~")
     exts = list(bot.extensions)
     for ext in exts:
         await bot.reload_extension(ext)
-    print("~~~~~ reloading ~~~~~")
-    await ctx.message.delete()
+    await ctx.message.add_reactions("✅")
 
 @bot.command(name="add-ext", hidden=True)
 async def add_extension(ctx: Context, name: str):
