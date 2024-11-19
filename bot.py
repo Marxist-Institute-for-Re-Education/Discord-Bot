@@ -22,6 +22,7 @@ bot.setup_hook = setup_hook
 
 @bot.command(name="reload", hidden=True)
 async def reload(ctx: Context):
+    print("~~~~~~~~~~ reloading ~~~~~~~~~~")
     exts = list(bot.extensions)
     for ext in exts:
         await bot.reload_extension(ext)

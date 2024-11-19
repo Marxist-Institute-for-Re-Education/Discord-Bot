@@ -1,3 +1,6 @@
+from typing import Optional, Type, Literal, List, Union
+from typing_extensions import Self
+
 import discord.ui as dc
 from discord import Member, Guild, Role, PartialEmoji, Interaction, Object
 from discord.channel import TextChannel
@@ -7,6 +10,7 @@ from discord.ui import Modal
 from discord.utils import get
 
 from . import roles
+from . import channels
 
 
 __all__ = [
@@ -18,11 +22,16 @@ __all__ = [
     "get_role",
     "abbreviate",
     "ModalButton",
-    "roles"
+    "roles",
+    "Optional",
+    "Type",
+    "Literal",
+    "List",
+    "Self"
 ]
 
 
-def is_lit_chair(value: Member | Interaction | Context) -> bool:
+def is_lit_chair(value: Union[Member, Interaction, Context]) -> bool:
     user: Member
     if isinstance(value, Member):
         user = value
@@ -51,7 +60,7 @@ def require_non_member(user: Member) -> bool:
 def interacter_has_role(role: Object, name: str):
     async def check(interaction: Interaction) -> bool:
         return require_role(interaction.user, role, name)
-    def decorator(cls: type[dc.Item | dc.View]):
+    def decorator(cls: Type[dc.Item | dc.View]):
         cls.interaction_check = check
         return cls
     return decorator
@@ -77,9 +86,9 @@ class Button(dc.Button):
 
 class ModalButton(dc.Button):
     EMOJI: PartialEmoji
-    MODAL_CLASS: type[Modal]
+    MODAL_CLASS: Type[Modal]
 
-    def __init_subclass__(cls, *, emoji: str, modal: type[Modal]):
+    def __init_subclass__(cls, *, emoji: str, modal: Type[Modal]):
         cls.EMOJI = PartialEmoji.from_str(emoji)
         cls.MODAL_CLASS = modal
 
@@ -87,4 +96,4 @@ class ModalButton(dc.Button):
         super().__init__(emoji=self.EMOJI)
 
     async def callback(self, interaction: Interaction):
-        interaction.response.send_modal(self.MODAL_CLASS())
+        await interaction.response.send_modal(self.MODAL_CLASS())
