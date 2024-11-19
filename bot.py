@@ -9,7 +9,7 @@ bot = Bot(
     )
 
 EXTENSIONS: list[str] = [
-    # "book_club",
+    "book_club",
     "committee",
     "democracy",
     "litmus"
