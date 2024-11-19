@@ -1,3 +1,6 @@
+from typing import Optional, Type, Literal, List
+from typing_extensions import Self, Type
+
 import discord.ui as dc
 from discord import Member, Guild, Role, PartialEmoji, Interaction, Object
 from discord.channel import TextChannel
@@ -7,6 +10,7 @@ from discord.ui import Modal
 from discord.utils import get
 
 from . import roles
+from . import channels
 
 
 __all__ = [
@@ -18,7 +22,12 @@ __all__ = [
     "get_role",
     "abbreviate",
     "ModalButton",
-    "roles"
+    "roles",
+    "Optional",
+    "Type",
+    "Literal",
+    "List",
+    "Self"
 ]
 
 
@@ -77,7 +86,7 @@ class Button(dc.Button):
 
 class ModalButton(dc.Button):
     EMOJI: PartialEmoji
-    MODAL_CLASS: type[Modal]
+    MODAL_CLASS: Type[Modal]
 
     def __init_subclass__(cls, *, emoji: str, modal: type[Modal]):
         cls.EMOJI = PartialEmoji.from_str(emoji)
@@ -87,4 +96,4 @@ class ModalButton(dc.Button):
         super().__init__(emoji=self.EMOJI)
 
     async def callback(self, interaction: Interaction):
-        interaction.response.send_modal(self.MODAL_CLASS())
+        await interaction.response.send_modal(self.MODAL_CLASS())

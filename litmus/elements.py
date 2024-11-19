@@ -10,7 +10,7 @@ from utils.channels import LITMUS_TESTS, WELCOME
 from utils.roles import GENERAL_MEMBER, CENTRAL_COMMITTEE
 
 
-class LitmusTestModal(Modal):
+class LitmusTestModal(Modal, title = "Litmus Test"):
     TENDENCY: TextInput = TextInput(
         label = "What is your tendency?",
         placeholder = "Marxist-Leninist, Anarchist, MLM-G, etc...",
@@ -35,7 +35,7 @@ class LitmusTestModal(Modal):
         label = "Do you have any interest in becoming a Cadre?",
         placeholder = "Instagram, TikTok, invited by @user, etc...",
         required = False,
-        row = 3
+        row = 4
         )
 
     async def on_submit(self, interaction: Interaction):
