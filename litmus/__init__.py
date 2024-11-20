@@ -11,24 +11,54 @@ class LitmusTest(Cog, name = "Litmus Test"):
     def __init__(self, bot: Bot):
         super().__init__()
         self.bot: Bot = bot
+        self.is_connected: bool = True
+        self.welcome_ch = bot.get_channel(WELCOME.id)
+        self._message: Message = None
+
+    @Cog.listener("on_connect")
+    async def on_connect(self):
+        await self.send_up_message()
+        self.is_connected = True
+
+    @Cog.listener("on_disconnect")
+    async def on_disconnect(self):
+        if self.is_connected:
+            await self.send_down_message()
+        self.is_connected = False
 
     async def cog_load(self):
-        channel: TextChannel = await self.bot.fetch_channel(WELCOME.id)
-        last_msg = channel.last_message
-        last_msg = last_msg or await anext(channel.history(limit=1))
-        if last_msg.author != self.bot.user:
-            # print(f"DEBUG: author: {last_msg.author} | {self.bot}")
-            await channel.send(
-                "## Litmus Test\n"
-                "Interact with the button below to submit your litmus test!",
+        if self.welcome_ch is None:
+            self.welcome_ch = await self.bot.fetch_channel(WELCOME.id)
+        await self.find_litmus_message()
+        return await super().cog_load()
+
+    @property
+    async def message(self) -> Message:
+        """Different from `find_litmus_message` bc this only finds it if its not set yet"""
+        if self._message is None:
+            await self.find_litmus_message()
+        return self._message
+
+    async def find_litmus_message(self) -> Message:
+        old = self._message
+        async for msg in self.welcome_ch.history(limit=5):
+            if LitmusTest.is_litmus_message(msg):
+                self._message = msg
+                break
+        if self._message is None and old is None: # no message found
+            self._message = await self.welcome_ch.send(
+                self.UP_MESSAGE,
                 view=self.view
-            )
-        else:
-            await last_msg.edit(view=self.view)
+                )
+        return self._message
 
     @property
     def view(self) -> View:
         return View().add_item(TakeLitmusButton())
+
+    @staticmethod
+    def is_litmus_message(msg: Message) -> bool:
+        return msg.content.find("## Litmus Test") != -1
 
 
 async def setup(bot: Bot):
