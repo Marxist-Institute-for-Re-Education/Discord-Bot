@@ -11,7 +11,7 @@ class Committee(Cog, name = "Committee"):
         super().__init__()
 
     @command(name="join", help="Join a committee!")
-    async def join_committee(ctx: Context, committee_role: Role=None, user: Member=None):
+    async def join_committee(self, ctx: Context, committee_role: Role=None, user: Member=None):
         print(f"Adding @{user} to @{committee_role}")
         if user is None:
             user = ctx.author

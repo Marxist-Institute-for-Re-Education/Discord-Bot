@@ -15,13 +15,12 @@ class Status(IntEnum):
     Finished = 3
 
     def as_emoji(self) -> str:
-        match self:
-            case Status.Priority:
-                return "❗"
-            case Status.Pending:
-                return "🔜"
-            case Status.Finished:
-                return "✅"
+        if self == Status.Priority:
+            return "❗"
+        elif self == Status.Pending:
+            return "🔜"
+        else: # self == Status.Finished:
+            return "✅"
 
 
 class Suggestion(Base):
