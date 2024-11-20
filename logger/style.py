@@ -24,20 +24,40 @@ class Style(Enum):
             return f"\x1b[{self.value}m"
 
     def __call__(self, val: str) -> str:
-        return str(self) + val + str(Style.RESET)
+        if self.is_blank():
+            return val
+        else:
+            return str(self) + val + str(Style.RESET)
 
     def __add__(self, other: Union[Self, str]) -> Union[Self, str]:
         if isinstance(other, str):
             return str(self) + other
+        elif self.is_blank():
+            return other
+        elif other.is_blank():
+            return self
         else:
             val = Style.BLANK
+            # name only matters for __repr__
             val._name_ = self.name + "+" + other.name
             val._value_ = self.value + ";" + other.value
             return val
 
     def __add_eq__(self, other: Self):
-        self._name_ += "+" + other.name
-        self._value_ += ";" + other.value
+        if other.is_blank():
+            return
+        elif self.is_blank():
+            self._name_ = other.name
+            self._value_ = other.value
+        else:
+            self._name_ += "+" + other.name
+            self._value_ += ";" + other.value
 
     def substr(self, full: str, sub: str) -> str:
-        return full.replace(sub, self(sub))
+        if self.is_blank() or len(sub) == 0:
+            return full
+        else:
+            return full.replace(sub, self(sub))
+
+    def is_blank(self) -> bool:
+        return self.value == ""
