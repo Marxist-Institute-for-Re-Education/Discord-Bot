@@ -26,7 +26,7 @@ async def reload(ctx: Context):
     exts = list(bot.extensions)
     for ext in exts:
         await bot.reload_extension(ext)
-    await ctx.message.add_reactions("✅")
+    await ctx.message.add_reaction("✅")
 
 @bot.command(name="add-ext", hidden=True)
 async def add_extension(ctx: Context, name: str):
