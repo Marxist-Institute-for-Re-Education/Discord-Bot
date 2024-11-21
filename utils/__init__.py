@@ -1,5 +1,4 @@
-from typing import Optional, Type, Literal, List, Union
-from typing_extensions import Self
+from typing import Type, Union
 
 import discord.ui as dc
 from discord import Member, Guild, Role, PartialEmoji, Interaction, Object
@@ -11,6 +10,7 @@ from discord.utils import get
 
 from . import roles
 from . import channels
+from . import types
 
 
 __all__ = [
@@ -23,12 +23,9 @@ __all__ = [
     "abbreviate",
     "ModalButton",
     "roles",
-    "Optional",
-    "Type",
-    "Literal",
-    "List",
-    "Self"
 ]
+
+
 
 
 def is_lit_chair(value: Union[Member, Interaction, Context]) -> bool:
