@@ -2,7 +2,10 @@ import logging
 from logging import LogRecord, Formatter
 from .style import Style
 
-
+__all__ = [
+    "BasicFormatter",
+    "ColorFormatter",
+]
 
 class BasicFormatter(Formatter):
     TIME_FORMAT = "Y%Y/M%m/D%d-%H:%M:%S"
@@ -12,6 +15,9 @@ class BasicFormatter(Formatter):
         super().__init__(fmt=self.FORMAT, datefmt=self.TIME_FORMAT, style='{')
 
 class ColorFormatter(Formatter):
+    FORMAT = "~~~ {levelname}:" + Style.DIM(
+        "{module}:{funcName}:" + Style.BLUE(" [{asctime}]")
+        ) + "\n\t{message}"
     FORMATS = {
         logging.DEBUG: Style.MAGENTA,
         logging.INFO: Style.BLUE,
@@ -23,10 +29,15 @@ class ColorFormatter(Formatter):
     def format(self, record):
         fmt = self.FORMAT
         fmt = self.format_level(fmt, record)
-        fmt = Style.DIM.substr(fmt, ":{module}:{funcName}:")
+        # fmt = Style.DIM.substr(fmt, ":{module}:{funcName}:")
+        fmt = Style.format(fmt)
         fmtr = Formatter(fmt=fmt, datefmt=self.TIME_FORMAT, style='{')
         return fmtr.format(record)
 
     def format_level(self, fmt: str, record: LogRecord) -> str:
         style = self.FORMATS.get(record.levelno) + Style.UNDERLINE
         return style.substr(fmt, "{levelname}")
+
+### TESTS
+
+
