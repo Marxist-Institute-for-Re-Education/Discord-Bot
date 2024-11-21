@@ -1,14 +1,16 @@
 from enum import Enum
-from utils import Union, Self
+from utils.types import *
 
+__all__ = [
+    "Style"
+]
 
 # Does not contain every option--options are added ad-hoc (only as needed)
-class Style(Enum):
-    BLANK = ""
+class ANSICode(Enum):
     RESET = "0"
     # Text Colors
     WHITE = "39"
-    MAGENTA = "35"
+    PURPLE = "35"
     BLUE = "34"
     YELLOW = "33"
     RED = "31"
@@ -18,62 +20,57 @@ class Style(Enum):
     UNDERLINE = "4"
 
     def __str__(self) -> str:
-        if self.is_blank():
-            return ""
-        else:
-            return f"\x1b[{self.value}m"
+        return self.value
 
-    def __call__(self, val: str) -> str:
-        if self.is_blank():
-            return val
-        else:
-            return str(self) + val + str(Style.RESET)
+    # cant do `__str__` bc `Style`'s `__str__` uses `join`
+    def to_seq(self) -> str:
+        return "\x1b["+self.value+"m"
+
+
+class Style:
+    def __init__(self, *values: ANSICode):
+        self.codes: List[ANSICode] = []
+        self.codes.extend(values)
 
     def __add__(self, other: Union[Self, str]) -> Union[Self, str]:
-        if self.is_blank():
-            return other
-        elif isinstance(other, str):
+        if isinstance(other, str):
             return str(self) + other
-        elif other.is_blank():
-            return self
         else:
-            val = Style.BLANK
-            # name only matters for __repr__
-            val._name_ = self.name + "+" + other.name
-            val._value_ = self._value_ + ";" + other._value_
-            return val
+            return Style(*(self.codes + other.codes))
 
-    def __add_eq__(self, other: Self):
-        if other.is_blank():
-            return
-        elif self.is_blank():
-            self._name_ = other.name
-            self._value_ = other._value_
+    def __add_eq__(self, style: Union[Self, ANSICode]) -> None:
+        if isinstance(style, ANSICode):
+            self.codes.append(style)
         else:
-            self._name_ += "+" + other.name
-            self._value_ += ";" + other._value_
+            self.codes.extend(style.codes)
+
+    def __call__(self, s: str) -> str:
+        if len(self.codes) <= 0:
+            return s
+        else:
+            return str(self) + s + str(Style(ANSICode.RESET))
 
     def substr(self, full: str, sub: str) -> str:
-        if self.is_blank() or len(sub) == 0:
+        if len(self.codes) == 0:
             return full
         else:
             return full.replace(sub, self(sub))
 
-    def is_blank(self) -> bool:
-        return self is Style.BLANK
+    def __str__(self) -> str:
+        if len(self.codes) <= 0:
+            return ""
+        else:
+            return "\x1b["+(';'.join(self.codes))+"m"
+
+
+# Add ANSI enum members as members here
+for name, enum in ANSICode.__members__.items():
+    setattr(Style, name, Style(enum))
+
 
 ### Tests
 
-def escape(val: Union[Style, str]):
-    s: str = str(val)
-    return s.replace("\x1b", "\\x1b")
-
-def test_is_blank():
-    assert Style.BLANK.is_blank()
-    assert not Style.RED.is_blank()
-
 def test_styles():
-    assert str(Style.BLANK) == ""
     assert str(Style.RESET) == "\x1b[0m"
     assert str(Style.WHITE) == "\x1b[39m"
     assert str(Style.MAGENTA) == "\x1b[35m"
@@ -87,14 +84,11 @@ def test_styles():
 def test_concat():
     assert str(Style.RED + Style.BOLD) == "\x1b[31;1m"
     assert str(Style.WHITE + Style.DIM + Style.UNDERLINE) == "\x1b[39;2;4m"
-    assert str(Style.BLANK + Style.BOLD) == "\x1b[1m"
-    assert str(Style.MAGENTA + Style.BLANK) == "\x1b[35m"
-    assert str(Style.Yellow + "test") == "\x1b[33mtest"
+    assert str(Style.YELLOW + "test") == "\x1b[33mtest"
 
 def test_concat_eq():
     style = Style.BLUE
     style += Style.UNDERLINE
-    style += Style.BLANK
     style += Style.DIM
     assert str(style) == "\x1b[34;4;2m"
 
@@ -102,9 +96,8 @@ def test_call():
     assert Style.YELLOW("test") == "\x1b[33mtest\x1b[0m"
     style = Style.DIM + Style.BOLD
     assert style("test") == "\x1b[2;1mtest\x1b[0m"
-    assert Style.BLANK("test") == "test"
+    assert Style()("test") == "test"
 
 def test_substr():
     test_str = "this is a test string"
     assert Style.BLUE.substr(test_str, "test") == "this is a \x1b[34mtest\x1b[0m string"
-    assert Style.BLANK.substr(test_str, "test") == test_str
