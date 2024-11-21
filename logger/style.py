@@ -60,7 +60,7 @@ class Style:
         if len(self.codes) <= 0:
             return ""
         else:
-            return "\x1b["+(';'.join(self.codes))+"m"
+            return "\x1b["+(';'.join([str(code) for code in self.codes]))+"m"
 
 
 # Add ANSI enum members as members here

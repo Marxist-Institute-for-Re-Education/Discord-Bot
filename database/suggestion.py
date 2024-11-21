@@ -6,7 +6,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
+from logger import getLogger
 from .base import *
+
+
+__all__ = [
+    "Suggestion",
+    "Status"
+]
+
+
+logger = getLogger(__name__)
 
 
 class Status(IntEnum):
@@ -35,18 +45,21 @@ class Suggestion(Base):
 
     @classmethod
     def get(cls, title: str) -> Self:
+        logger.debug(f"querying for suggestion \"{title}\"")
         with Session(engine) as session:
             stmt = select(cls).where(cls.title == title)
             return session.scalar(stmt)
 
     @classmethod
     def from_user(cls, user_id: int) -> Self:
+        logger.debug(f"querying for suggestions from user ID:{user_id}")
         with Session(engine) as session:
             stmt = select(cls).where(cls.user_id == user_id)
             return session.scalar(stmt)
 
     @classmethod
     def remove(cls, title: str):
+        logger.debug(f"removing suggestion \"{title}\"")
         with Session(engine) as session:
             session.delete(cls.get(title))
 
@@ -59,6 +72,10 @@ class Suggestion(Base):
         notes: str = None,
         status: Status = Status.Pending
     ):
+        logger.debug(
+            f"adding suggestion\n\t\ttitle: {title}"
+            f"\n\t\tsuggester: ID:{user_id}\n\t\ttotal_ch: {total_ch}\n\t\tnotes: {notes}"
+            )
         with new_session() as session:
             sug = cls(
                 title=title,
@@ -89,11 +106,14 @@ class Suggestion(Base):
     @is_prioritized.setter
     def is_prioritized(self, value: bool):
         if self._status == Status.Finished:
+            logger.warning("attempted to change priority for finished suggestion (\"{self.title}\")")
             raise TypeError("Suggestion cannot change priority when active or finished")
         elif value:
             self._status = Status.Priority
+            logger.debug(f"prioritized suggestion (\"{self.title}\")")
         else:
             self._status = Status.Pending
+            logger.debug(f"removed priority for suggestion (\"{self.title}\")")
 
     @property
     def is_finished(self) -> bool:
@@ -103,17 +123,5 @@ class Suggestion(Base):
         return self._status == Status.Finished
     def finish(self):
         self.next_ch = self.total_ch
-        self.__status = Status.Finished
-        self.TABLE.update(
-            {
-                "next_chapter": self.next_ch,
-                "status": self._status
-            },
-            doc_ids=[self.doc_id]
-        )
-
-
-__all__ = [
-    "Suggestion",
-    "Status"
-]
+        self._status = Status.Finished
+        logger.debug("finished suggestion (\"{self.title}\")")

@@ -15,6 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 def main():
     # `log_handler`` is `None` bc we do our own setup with `config()`
+    logger.config_loggers()
     bot.run(TOKEN, log_handler=None)
 
 if __name__ == "__main__":

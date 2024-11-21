@@ -3,7 +3,17 @@ from discord.ui import View, Button
 from discord.ext.commands import Context, Cog, command, Bot
 
 from utils.channels import WELCOME
+from logger import getLogger
 from .elements import TakeLitmusButton
+
+
+__all__ = [
+    "LitmusTest",
+    "setup",
+    ]
+
+
+logger = getLogger(__name__)
 
 
 class LitmusTest(Cog, name = "Litmus Test"):
@@ -43,11 +53,14 @@ class LitmusTest(Cog, name = "Litmus Test"):
 
     async def find_litmus_message(self) -> Message:
         old = self._message
+        logger.debug("finding litmus message")
         async for msg in self.welcome_ch.history(limit=5):
-            if LitmusTest.is_litmus_message(msg):
+            if msg.content.find("## Litmus Test") != -1:
+                logger.debug(f"found litmus message (ID:{msg.id})")
                 self._message = msg
                 break
         if self._message is None and old is None: # no message found
+            logger.info("existing message not found; sending new litmus test message")
             self._message = await self.welcome_ch.send(
                 self.UP_MESSAGE,
                 view=self.view
@@ -58,14 +71,12 @@ class LitmusTest(Cog, name = "Litmus Test"):
     def view(self) -> View:
         return View().add_item(TakeLitmusButton())
 
-    @staticmethod
-    def is_litmus_message(msg: Message) -> bool:
-        return msg.content.find("## Litmus Test") != -1
-
     async def send_up_message(self):
+        logger.info("reset litmus buttons")
         await (await self.message).edit(content=self.UP_MESSAGE, view=self.view)
 
     async def send_down_message(self):
+        logger.info("disabled litmus buttons")
         await (await self.message).edit(content=self.DOWN_MESSAGE, view=None)
 
 

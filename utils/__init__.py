@@ -1,16 +1,15 @@
 from typing import Type, Union
 
 import discord.ui as dc
-from discord import Member, Guild, Role, PartialEmoji, Interaction, Object
-from discord.channel import TextChannel
+from discord import Member, Guild, Role, Interaction, Object
 from discord.ext.commands import Context
 from discord.ext.commands.errors import CheckFailure
-from discord.ui import Modal
 from discord.utils import get
 
 from . import roles
 from . import channels
 from . import types
+from . import ui
 
 
 __all__ = [
@@ -21,11 +20,10 @@ __all__ = [
     "interacter_has_role",
     "get_role",
     "abbreviate",
-    "ModalButton",
     "roles",
+    "Button",
+    "ModalButton",
 ]
-
-
 
 
 def is_lit_chair(value: Union[Member, Interaction, Context]) -> bool:
@@ -69,28 +67,3 @@ def abbreviate(s: str, length: int=100):
     if len(s) >= length:
         s = s[0:length - 4] + "..."
     return s
-
-
-class Button(dc.Button):
-    EMOJI: PartialEmoji
-
-    def __init_subclass__(cls, *, emoji: str):
-        cls.EMOJI = PartialEmoji.from_str(emoji)
-
-    def __init__(self):
-        super().__init__(emoji=self.EMOJI)
-
-
-class ModalButton(dc.Button):
-    EMOJI: PartialEmoji
-    MODAL_CLASS: Type[Modal]
-
-    def __init_subclass__(cls, *, emoji: str, modal: Type[Modal]):
-        cls.EMOJI = PartialEmoji.from_str(emoji)
-        cls.MODAL_CLASS = modal
-
-    def __init__(self):
-        super().__init__(emoji=self.EMOJI)
-
-    async def callback(self, interaction: Interaction):
-        await interaction.response.send_modal(self.MODAL_CLASS())
