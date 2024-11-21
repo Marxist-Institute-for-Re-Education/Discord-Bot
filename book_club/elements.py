@@ -3,9 +3,11 @@ from discord.ext.commands.errors import CheckFailure
 from discord.ui import Modal, View, TextInput, Select
 from typing import List
 
-from utils import is_lit_chair, abbreviate, Button, ModalButton
+from utils import is_lit_chair, abbreviate
+from utils.ui import Button, ModalButton
 from utils.roles import CADRE
 from database import Suggestion, new_session
+from logger import getLogger
 
 
 __all__ = [
@@ -15,6 +17,9 @@ __all__ = [
     "PrioritizeButton",
     "suggestions_embed"
 ]
+
+
+logger = getLogger(__name__)
 
 
 def suggestions_embed() -> Embed:
@@ -71,6 +76,7 @@ class AddModal(Modal, title="Add"):
 
     async def on_submit(self, interaction: Interaction):
         user = interaction.user
+        logger.debug(f"user {user} submitted AddModal")
         title = self.TITLE.value
         chapters: str = self.CHAPTERS.value
         total_ch = 0
@@ -119,6 +125,11 @@ class EditModal(Modal, title="Edit"):
         self.NOTES.default = self.suggestion.notes
 
     async def on_submit(self, interaction: Interaction):
+        logger.debug(f"user {interaction.user} submitted EditModal")
+        old_title = self.suggestion.title
+        old_next_ch = self.suggestion.next_ch
+        old_total_ch = self.suggestion.total_ch
+        old_notes = self.suggestion.notes
         with new_session() as session:
             self.suggestion.title = self.TITLE.value
             next_ch = self.NEXT_CH.value
@@ -128,17 +139,26 @@ class EditModal(Modal, title="Edit"):
             if len(total_ch) > 0:
                 self.suggestion.total_ch = int(total_ch)
             self.notes = self.NOTES.value
+            logger.debug(
+                f"editing suggestion:"
+                f"\n\t\ttitle: {old_title} -> {self.TITLE.value}"
+                f"\n\t\tnext chapter: {old_next_ch} -> {next_ch}"
+                f"\n\t\ttotal chapters: {old_total_ch} -> {total_ch}"
+                f"\n\t\tnotes: {old_notes} -> {self.NOTES.value}"
+                )
             session.commit()
         await interaction.response.defer()
         await interaction.message.edit(embed=suggestions_embed())
 
 class EditDropdown(UserSuggestionsDropdown):
     async def callback(self, interaction: Interaction):
-        doc_id = int(self.values[0])
-        await interaction.response.send_modal(EditModal(doc_id))
+        title = self.values[0]
+        logger.debug(f"user {interaction.user} selected to edit \"{title}\"")
+        await interaction.response.send_modal(EditModal(title))
 
 class EditButton(Button, emoji="📝"):
     async def callback(self, interaction: Interaction):
+        logger.debug(f"user {interaction.user} used EditButton")
         await interaction.response.send_message(
             "Which suggestions would you like to edit?",
             view=View().add_item(EditDropdown(interaction.user)),
@@ -148,12 +168,14 @@ class EditButton(Button, emoji="📝"):
 
 class RemoveDropdown(UserSuggestionsDropdown):
     async def callback(self, interaction: Interaction):
+        logger.debug(f"user {interaction} submitted RemoveDropdown")
         for entry in self.values:
             entry.remove()
         await super().callback(interaction)
 
 class RemoveButton(Button, emoji="❌"):
     async def callback(self, interaction: Interaction):
+        logger.debug(f"user {interaction} used RemoveButton")
         await interaction.response.send_message(
             "Which suggestions would you like to remove?",
             view=View().add_item(RemoveDropdown(interaction.user)),
@@ -161,8 +183,10 @@ class RemoveButton(Button, emoji="❌"):
             )
 
 
+# ! commented out because deprecated
 class AssignDropdown(SuggestionsDropdown):
     def __init__(self):
+        raise DeprecationWarning("Suggestion assignment is deprecated.")
         for entry in Suggestion.all():
             self.add_option(
                 label = entry.title,
@@ -171,11 +195,13 @@ class AssignDropdown(SuggestionsDropdown):
             )
 
     async def callback(self, interaction: Interaction):
+        raise DeprecationWarning("Suggestion assignment is deprecated.")
         for entry in self.get_all():
             entry.activate()
         await super().callback(interaction)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        raise DeprecationWarning("Suggestion assignment is deprecated.")
         if not is_lit_chair(interaction.user):
             raise CheckFailure(f"{interaction.user} is not a Literature Chair")
         return True
@@ -193,17 +219,21 @@ class PrioritizeDropdown(SuggestionsDropdown):
             )
 
     async def callback(self, interaction: Interaction):
+        logger.debug(f"user {interaction.user} submitted PrioritizeDropdown")
         for sug in self.get_all():
             sug.is_prioritized = True
         await super().callback(interaction)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        if not is_lit_chair(interaction.user):
+        user = interaction.user
+        if not is_lit_chair(user):
+            logger.warning( "user {user} tried to prioritize but is not Literature Chair")
             raise CheckFailure(f"{interaction.user} is not a Literature Chair")
         return True
 
 class PrioritizeButton(Button, emoji="❗"):
     async def callback(self, interaction: Interaction):
+        logger.debug(f"user {interaction.user} used PrioritizeButton")
         await interaction.response.send_message(
             "What would you like to prioritize?",
             view=View().add_item(PrioritizeDropdown()),
@@ -211,7 +241,9 @@ class PrioritizeButton(Button, emoji="❗"):
             )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        if not is_lit_chair(interaction.user):
+        user = interaction.user
+        if not is_lit_chair(user):
+            logger.warning( "user {user} tried to prioritize but is not Literature Chair")
             raise CheckFailure(f"{interaction.user} is not a Literature Chair")
         return True
 

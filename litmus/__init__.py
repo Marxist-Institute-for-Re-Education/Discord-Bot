@@ -3,7 +3,17 @@ from discord.ui import View, Button
 from discord.ext.commands import Context, Cog, command, Bot
 
 from utils.channels import WELCOME
+from logger import getLogger
 from .elements import TakeLitmusButton
+
+
+__all__ = [
+    "LitmusTest",
+    "setup",
+    ]
+
+
+logger = getLogger(__name__)
 
 
 class LitmusTest(Cog, name = "Litmus Test"):
@@ -13,40 +23,61 @@ class LitmusTest(Cog, name = "Litmus Test"):
     def __init__(self, bot: Bot):
         super().__init__()
         self.bot: Bot = bot
+        self.is_connected: bool = True
         self.welcome_ch = bot.get_channel(WELCOME.id)
-        self.message: Message = None
+        self._message: Message = None
+
+    @Cog.listener("on_connect")
+    async def on_connect(self):
+        await self.send_up_message()
+        self.is_connected = True
+
+    @Cog.listener("on_disconnect")
+    async def on_disconnect(self):
+        if self.is_connected:
+            await self.send_down_message()
+        self.is_connected = False
 
     async def cog_load(self):
         if self.welcome_ch is None:
             self.welcome_ch = await self.bot.fetch_channel(WELCOME.id)
         await self.find_litmus_message()
-        await self.message.edit(content=self.UP_MESSAGE, view=self.view)
         return await super().cog_load()
 
-    async def cog_unload(self):
-        await self.message.edit(content=self.DOWN_MESSAGE, view=None)
-        return await super().cog_unload()
+    @property
+    async def message(self) -> Message:
+        """Different from `find_litmus_message` bc this only finds it if its not set yet"""
+        if self._message is None:
+            await self.find_litmus_message()
+        return self._message
 
     async def find_litmus_message(self) -> Message:
-        if self.message is None:
-            async for msg in self.welcome_ch.history(limit=5):
-                if LitmusTest.is_litmus_message(msg):
-                    self.message = msg
-                    break
-        if self.message is None: # if there was no message found
-            self.message = await self.welcome_ch.send(
+        old = self._message
+        logger.debug("finding litmus message")
+        async for msg in self.welcome_ch.history(limit=5):
+            if msg.content.find("## Litmus Test") != -1:
+                logger.debug(f"found litmus message (ID:{msg.id})")
+                self._message = msg
+                break
+        if self._message is None and old is None: # no message found
+            logger.info("existing message not found; sending new litmus test message")
+            self._message = await self.welcome_ch.send(
                 self.UP_MESSAGE,
                 view=self.view
                 )
-        return self.message
+        return self._message
 
     @property
     def view(self) -> View:
         return View().add_item(TakeLitmusButton())
 
-    @staticmethod
-    def is_litmus_message(msg: Message) -> bool:
-        return msg.content.find("## Litmus Test") != -1
+    async def send_up_message(self):
+        logger.info("reset litmus buttons")
+        await (await self.message).edit(content=self.UP_MESSAGE, view=self.view)
+
+    async def send_down_message(self):
+        logger.info("disabled litmus buttons")
+        await (await self.message).edit(content=self.DOWN_MESSAGE, view=None)
 
 
 async def setup(bot: Bot):
