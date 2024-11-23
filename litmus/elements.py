@@ -6,10 +6,10 @@ from discord.channel import TextChannel
 from discord.ui import Button, Modal, View
 from discord.ui.text_input import TextInput
 
-from utils import require_non_member, require_role
+from utils import require_role, has_any_role
 from utils.ui import ModalButton
 from utils.channels import LITMUS_TESTS, WELCOME
-from utils.roles import GENERAL_MEMBER, CENTRAL_COMMITTEE
+from utils.roles import GENERAL_MEMBER, CADRE, CENTRAL_COMMITTEE
 
 from logger import getLogger
 
@@ -23,17 +23,16 @@ logger = getLogger(__name__)
 class LitmusTestModal(Modal, title = "Litmus Test"):
     TENDENCY: TextInput = TextInput(
         label = "What is your tendency?",
-        placeholder = "Marxist-Leninist, Anarchist, MLM-G, etc...",
+        placeholder = "Marxist-Leninist, anarchist, MLM-G, etc.",
         row = 0
         )
-    PALI_SOLUTION: TextInput = TextInput(
-        label = "What solution do you support for palestine?",
-        placeholder = "Two-state, one palestinian state, 1948, etc...",
+    RUSSIA: TextInput = TextInput(
+        label = "What is your opinion on Russia",
         row = 1
         )
     ORGS: TextInput = TextInput(
         label = "What other orgs are you a part of?",
-        placeholder = "SJP, PSL, CPUSA, ACP, DSA, SDS, FRSO, etc...",
+        placeholder = "SJP, PSL, CPUSA, ACP, DSA, SDS, FRSO, etc.",
         row = 2
         )
     WHY: TextInput = TextInput(
@@ -51,7 +50,7 @@ class LitmusTestModal(Modal, title = "Litmus Test"):
         logger.debug(
             f"{interaction.user}'s litmus test answers:"
             f"\n\t    tendency: {self.TENDENCY.value}"
-            f"\n\t    palestine solution: {self.PALI_SOLUTION.value}"
+            f"\n\t    palestine solution: {self.RUSSIA.value}"
             f"\n\t    orgs: {self.ORGS.value}"
             f"\n\t    why: {self.WHY.value}"
             f"\n\t    cadre: {self.CADRE.value}"
@@ -71,7 +70,7 @@ class LitmusTestModal(Modal, title = "Litmus Test"):
         logger.info(f"litmus test submitted by @{interaction.user}")
 
     def fmt_inputs(self) -> str:
-        inputs = [self.TENDENCY, self.PALI_SOLUTION, self.ORGS, self.WHY]
+        inputs = [self.TENDENCY, self.RUSSIA, self.ORGS, self.WHY]
         desc: str = ""
         for i, input in enumerate(inputs):
             desc += f"{i}) **{input.label}**\n{input.value}\n\n"
@@ -80,11 +79,15 @@ class LitmusTestModal(Modal, title = "Litmus Test"):
 
 class TakeLitmusButton(ModalButton, emoji="📝", modal=LitmusTestModal):
     async def interaction_check(self, interaction: Interaction) -> bool:
-        await interaction.response.send_message(
-            content = "You're already a member, silly!",
-            ephemeral = True
-            )
-        raise CheckFailure(f"{interaction.user} is already a member")
+        if has_any_role(interaction.user, GENERAL_MEMBER, CADRE):
+            await interaction.response.send_message(
+                content = "You're already a member, silly!",
+                ephemeral = True
+                )
+            return False
+            # raise CheckFailure(f"{interaction.user} is already a member")
+        else:
+            return True
 
 
 class CCButton(Button):

@@ -18,8 +18,11 @@ __all__ = [
     "is_non_member",
     "interacter_has_role",
     "get_role",
+    "has_any_role"
     "abbreviate",
+    "channels",
     "roles",
+    "types",
     "Button",
     "ModalButton",
 ]
@@ -45,6 +48,12 @@ def require_role(user: Member, role: Object, name: str) -> bool:
 
 def is_non_member(user: Member) -> bool:
     return len(user.roles) <= 1
+
+def has_any_role(user: Member, *roles: Object) -> bool:
+    for role in roles:
+        if user.get_role(role) is not None:
+            return True
+    return False
 
 def interacter_has_role(role: Object, name: str):
     async def check(interaction: Interaction) -> bool:
