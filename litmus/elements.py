@@ -1,4 +1,5 @@
 from discord import Interaction, Embed, Member, TextStyle, ChannelType, PartialEmoji
+from discord.ext.commands.errors import CheckFailure
 from discord.threads import Thread
 from discord.colour import Color
 from discord.channel import TextChannel
@@ -76,13 +77,14 @@ class LitmusTestModal(Modal, title = "Litmus Test"):
             desc += f"{i}) **{input.label}**\n{input.value}\n\n"
         return desc.rstrip()
 
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        return require_non_member(interaction.user)
-
 
 class TakeLitmusButton(ModalButton, emoji="📝", modal=LitmusTestModal):
     async def interaction_check(self, interaction: Interaction) -> bool:
-        return require_non_member(interaction.user)
+        await interaction.response.send_message(
+            content = "You're already a member, silly!",
+            ephemeral = True
+            )
+        raise CheckFailure(f"{interaction.user} is already a member")
 
 
 class CCButton(Button):

@@ -15,8 +15,7 @@ from . import ui
 __all__ = [
     "is_lit_chair",
     "require_role",
-    "is_non_member"
-    "require_non_member"
+    "is_non_member",
     "interacter_has_role",
     "get_role",
     "abbreviate",
@@ -46,11 +45,6 @@ def require_role(user: Member, role: Object, name: str) -> bool:
 
 def is_non_member(user: Member) -> bool:
     return len(user.roles) <= 1
-
-def require_non_member(user: Member) -> bool:
-    if not is_non_member(user):
-        raise CheckFailure(f"{user} is already a member")
-    return True
 
 def interacter_has_role(role: Object, name: str):
     async def check(interaction: Interaction) -> bool:
