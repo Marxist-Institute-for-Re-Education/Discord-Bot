@@ -4,7 +4,7 @@ import discord.ui as dc
 from discord import PartialEmoji, Interaction
 from discord.ui import Modal
 
-from .types import Type
+from .typing import Type
 
 
 __all__ = [

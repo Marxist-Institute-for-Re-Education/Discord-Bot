@@ -1,52 +1,68 @@
 from discord import Intents
-from discord.ext.commands import Bot, Context
+import discord.ext.commands as discord
+from discord.ext.commands import Context, command
 from discord.ext.commands.errors import ExtensionError
 
+from utils.typing import List
 from logger import getLogger
 
 
 __all__ = [
     "bot",
-    "setup_hook",
-    ]
+]
 
 
 logger = getLogger(__name__)
 
-bot = Bot(
-    command_prefix = "/",
-    intents = Intents.all(),
-    )
 
-EXTENSIONS: list[str] = [
-    "book_club",
-    "committee",
-    "democracy",
-    "litmus"
-]
+class MireBot(discord.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix = "!",
+            intents = Intents(
+                emojis = True,
+                guild_polls = True,
+                guild_reactions = True,
+                guild_scheduled_events = True,
+                guilds = True,
+                invites = True,
+                members = True,
+                message_content = True,
+                messages = True,
+                moderation = True,
+                ),
+            description = "Commands and events for MIRE"
+        )
 
-async def setup_hook():
-    for ext in EXTENSIONS:
-        await bot.load_extension(ext)
-bot.setup_hook = setup_hook
+    async def setup_hook(self):
+        for ext in self.get_extensions_list():
+            await self.load_extension(ext)
+        return await super().setup_hook()
 
-@bot.command(name="reload", hidden=True)
-async def reload(ctx: Context):
-    logger.info("reloading extensions")
-    exts = list(bot.extensions)
-    for ext in exts:
-        logger.debug(f"reloading {ext}")
-        await bot.reload_extension(ext)
-    await ctx.message.add_reaction("✅")
+    async def load_extension(self, name):
+        logger.debug(f"loading extension {name}")
+        return await super().load_extension(name)
 
-@bot.command(name="add-ext", hidden=True)
-async def add_extension(ctx: Context, name: str):
-    logger.info(f"adding extension ({name})")
-    try:
-        await bot.load_extension(name)
-    except ExtensionError as err:
-        logger.error("failed to load extension ({name})")
-        await ctx.send(f"Failed to load extension: {name}")
-        raise err
-    else:
-        await ctx.send(f"Added {name}")
+    @command(name="reload", hidden=True)
+    async def reload(self, ctx: Context):
+        for ext in self.get_extensions_list():
+            await self.reload_extension(ext)
+        await ctx.message.add_reaction("✅")
+
+    @command(name="add-ext", hidden=True)
+    async def add_extension(self, ctx: Context, name: str):
+        try:
+            await self.load_extension(name)
+            open(self.FILENAME, mode="a").write(name)
+        except ExtensionError as err:
+            await ctx.send(f"Failed to load {name}")
+            raise err
+        else:
+            await ctx.send(f"Added {name}")
+
+    @staticmethod
+    def get_extensions_list() -> List[str]:
+        lines = open("extensions.txt", mode="r").readlines()
+        return [line.strip() for line in lines]
+
+bot = MireBot()

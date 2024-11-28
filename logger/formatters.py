@@ -11,7 +11,7 @@ __all__ = [
 
 class BasicFormatter(Formatter):
     TIME_FORMAT = "Y%Y/M%m/D%d-%H:%M:%S"
-    FORMAT = "~~~ {levelname}:{name}:{funcName}: [{asctime}]\n\t{message}"
+    FORMAT = "~~~ {levelname}:{name}:{funcName}: [{asctime}]\n\t\t{message}"
 
     def __init__(self):
         super().__init__(fmt=self.FORMAT, datefmt=self.TIME_FORMAT, style='{')
