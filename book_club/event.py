@@ -4,7 +4,7 @@ from discord.scheduled_event import ScheduledEvent
 from discord.utils import utcnow
 
 
-class BookClubMeeting:
+class Meeting:
     @staticmethod
     def get_default_next() -> dt.datetime:
         DAY_OF_WEEK = 5 # Saturday
