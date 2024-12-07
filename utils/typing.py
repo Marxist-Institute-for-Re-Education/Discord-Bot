@@ -1,5 +1,5 @@
 from typing import Optional, Type, Literal, List, Union, TypeAlias
-from typing_extensions import Self, TypeAlias
+from typing_extensions import Self, TypeAlias, Callable
 
 
 __all__ = [
@@ -11,6 +11,7 @@ __all__ = [
     "Union",
     "TypeAlias",
     "FilePath",
+    "Callable",
     ]
 
 

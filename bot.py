@@ -1,6 +1,5 @@
-from discord import Intents
-import discord.ext.commands as discord
-from discord.ext.commands import Context, command
+from discord import Intents, Guild, User
+from discord.ext.commands import Bot, Context, command, dm_only
 from discord.ext.commands.errors import ExtensionError
 
 from utils.typing import List
@@ -8,14 +7,14 @@ from logger import getLogger
 
 
 __all__ = [
-    "bot",
+    "MireBot",
 ]
 
 
 logger = getLogger(__name__)
 
 
-class MireBot(discord.Bot):
+class MireBot(Bot):
     def __init__(self):
         super().__init__(
             command_prefix = "!",
@@ -30,9 +29,11 @@ class MireBot(discord.Bot):
                 message_content = True,
                 messages = True,
                 moderation = True,
+                # manage_events = True,
                 ),
             description = "Commands and events for MIRE"
         )
+        self.debug_users: List[User] = []
 
     async def setup_hook(self):
         for ext in self.get_extensions_list():
@@ -60,9 +61,11 @@ class MireBot(discord.Bot):
         else:
             await ctx.send(f"Added {name}")
 
+    @property
+    def guild(self) -> Guild:
+        return self.guilds[0]
+
     @staticmethod
     def get_extensions_list() -> List[str]:
         lines = open("extensions.txt", mode="r").readlines()
         return [line.strip() for line in lines]
-
-bot = MireBot()

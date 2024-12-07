@@ -1,3 +1,4 @@
+import typing as ty
 import discord.ui as dc
 from discord import Member, Guild, Role, Interaction, Object
 from discord.ext.commands import Context
@@ -20,6 +21,12 @@ __all__ = [
     "ModalButton",
 ]
 
+class classproperty(object):
+    def __init__(self, getter: ty.Callable[[ty.Any], ty.Any]):
+        self.getter: ty.Callable[[ty.Any], ty.Any] = getter
+
+    def __get__(self, obj, cls):
+        return self.f(cls)
 
 def abbreviate(s: str, length: int=100):
     if len(s) >= length:

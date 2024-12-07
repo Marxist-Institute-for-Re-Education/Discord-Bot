@@ -1,9 +1,11 @@
+from discord import Guild, ScheduledEvent
 from discord.ui import View
 from discord.ext.commands import Context, Cog, command, Bot
 
 from utils.roles import get, is_lit_chair
 from logger import getLogger
-from .elements import *
+from bot import MireBot
+from .suggestions import *
 
 
 __all__ = [
@@ -18,7 +20,7 @@ logger = getLogger(__name__)
 class BookClub(Cog, name = "Book Club"):
     """Everything related to Book Club!"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: MireBot):
         self.bot = bot
         super().__init__()
 
@@ -33,6 +35,14 @@ class BookClub(Cog, name = "Book Club"):
         if not is_lit_chair(ctx.author):
             view.add_item(PrioritizeButton())
         return await ctx.send(embed=embed, view=view)
+
+    async def make_book_club_event(self) -> ScheduledEvent:
+        guild: Guild = self.bot.guild
+        guild.create_scheduled_event(
+            name = "Book Club",
+            # channel = 
+        )
+        pass
 
     async def cog_check(self, ctx: Context) -> bool:
         return get(ctx.author.roles, name="Book Club") is not None
