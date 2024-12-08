@@ -6,7 +6,6 @@ from utils.roles import get, is_lit_chair
 from logger import getLogger
 from bot import MireBot
 from .suggestions import *
-from .event import *
 
 
 __all__ = [
@@ -36,17 +35,6 @@ class BookClub(Cog, name = "Book Club"):
         if not is_lit_chair(ctx.author):
             view.add_item(PrioritizeButton())
         return await ctx.send(embed=embed, view=view)
-
-    @Cog.listener("on_scheduled_event_update")
-    async def on_scheduled_event_update(self, before: ScheduledEvent, after: ScheduledEvent):
-        if before.status == after.status:
-            return
-        guild = after.guild
-        if after.status == EventStatus.active:
-            # create voice channel
-            pass
-        elif after.status == EventStatus.completed:
-            Meeting.create(guild)
 
     async def cog_check(self, ctx: Context) -> bool:
         return get(ctx.author.roles, name="Book Club") is not None
