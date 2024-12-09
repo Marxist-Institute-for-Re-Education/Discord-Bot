@@ -1,6 +1,6 @@
 import logging
 from logging import LogRecord, Formatter
-from .style import Style
+from utils.style import Style
 
 
 __all__ = [
