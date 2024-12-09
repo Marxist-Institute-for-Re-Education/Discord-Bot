@@ -3,9 +3,9 @@ from discord.ext.commands.errors import CheckFailure
 from discord.ui import Modal, View, TextInput, Select
 from typing import List
 
-from utils import is_lit_chair, abbreviate
+from utils import abbreviate
 from utils.ui import Button, ModalButton
-from utils.roles import CADRE
+from utils.roles import is_lit_chair
 from database import Suggestion, new_session
 from logger import getLogger
 
@@ -39,8 +39,7 @@ class SuggestionsDropdown(Select):
             self.add_option(label=abbreviate(entry.title), value=entry.title)
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
-        await interaction.message.edit(embed=suggestions_embed())
+        await interaction.response.edit_message(embed=suggestions_embed())
 
     def get_all(self) -> List[Suggestion]:
         return [Suggestion.get(title) for title in self.values]
@@ -84,8 +83,7 @@ class AddModal(Modal, title="Add"):
             total_ch = int(chapters)
         notes = self.NOTES.value
         Suggestion.new(title, user.id, total_ch, notes)
-        await interaction.response.defer()
-        await interaction.message.edit(embed=suggestions_embed())
+        await interaction.response.edit_message(embed=suggestions_embed())
 
 class AddButton(ModalButton, emoji="➕", modal=AddModal):
     pass
@@ -147,8 +145,7 @@ class EditModal(Modal, title="Edit"):
                 f"\n\t\tnotes: {old_notes} -> {self.NOTES.value}"
                 )
             session.commit()
-        await interaction.response.defer()
-        await interaction.message.edit(embed=suggestions_embed())
+        await interaction.response.edit_message(embed=suggestions_embed())
 
 class EditDropdown(UserSuggestionsDropdown):
     async def callback(self, interaction: Interaction):
@@ -181,30 +178,6 @@ class RemoveButton(Button, emoji="❌"):
             view=View().add_item(RemoveDropdown(interaction.user)),
             ephemeral=True
             )
-
-
-# ! commented out because deprecated
-class AssignDropdown(SuggestionsDropdown):
-    def __init__(self):
-        raise DeprecationWarning("Suggestion assignment is deprecated.")
-        for entry in Suggestion.all():
-            self.add_option(
-                label = entry.title,
-                value = entry.doc_id,
-                default = entry.is_prioritized
-            )
-
-    async def callback(self, interaction: Interaction):
-        raise DeprecationWarning("Suggestion assignment is deprecated.")
-        for entry in self.get_all():
-            entry.activate()
-        await super().callback(interaction)
-
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        raise DeprecationWarning("Suggestion assignment is deprecated.")
-        if not is_lit_chair(interaction.user):
-            raise CheckFailure(f"{interaction.user} is not a Literature Chair")
-        return True
 
 
 class PrioritizeDropdown(SuggestionsDropdown):
@@ -246,4 +219,3 @@ class PrioritizeButton(Button, emoji="❗"):
             logger.warning( "user {user} tried to prioritize but is not Literature Chair")
             raise CheckFailure(f"{interaction.user} is not a Literature Chair")
         return True
-

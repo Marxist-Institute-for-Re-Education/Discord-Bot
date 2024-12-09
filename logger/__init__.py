@@ -1,7 +1,7 @@
 import logging
 from logging import StreamHandler, FileHandler, getLogger
 
-from .color_formatter import ColorFormatter, BasicFormatter
+from .formatters import ColorFormatter, BasicFormatter
 
 
 __all__ = [
