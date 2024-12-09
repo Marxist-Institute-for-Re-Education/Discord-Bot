@@ -57,6 +57,8 @@ class LitmusTest(Cog, name = "Litmus Test"):
             if msg.content.find("## Litmus Test") != -1:
                 logger.debug(f"found litmus message (ID:{msg.id})")
                 self.message = msg
+                if msg.content.find("down") != -1:
+                    await self.send_up_message()
                 break
         if self.message is None: # no message found
             logger.info("existing message not found; sending new litmus test message")
