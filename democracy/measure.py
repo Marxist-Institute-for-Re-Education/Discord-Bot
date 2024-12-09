@@ -4,7 +4,7 @@ from discord import Poll, Interaction, Embed, Color, Guild
 from discord.ui import Modal, TextInput
 from discord.ext.commands import has_role
 
-from utils import get, require_role
+from utils.roles import require_role
 from utils.channels import DEM_DECISIONS, DEM_VOTE
 from utils.roles import CADRE
 from logger import getLogger
