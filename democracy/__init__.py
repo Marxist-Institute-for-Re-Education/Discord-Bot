@@ -4,7 +4,7 @@ from discord import Poll, Member, Interaction, Guild
 from discord.ui import Select, View
 from discord.ext.commands import Cog, Bot, command, Context, has_role
 
-from utils import get, require_role
+from utils.roles import require_role
 from utils.roles import CADRE, CENTRAL_COMMITTEE
 from .measure import *
 

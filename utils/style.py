@@ -1,5 +1,5 @@
 from enum import Enum
-from utils.types import *
+from utils.typing import Union, Self, List
 
 __all__ = [
     "Style"

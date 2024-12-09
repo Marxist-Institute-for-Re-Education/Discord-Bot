@@ -1,5 +1,5 @@
 import os
-from bot import *
+from bot import MireBot
 from dotenv import load_dotenv
 
 import book_club
@@ -15,6 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 def main():
     # `log_handler`` is `None` bc we do our own setup with `config()`
+    bot = MireBot()
     logger.config_loggers()
     bot.run(TOKEN, log_handler=None)
 

@@ -6,7 +6,7 @@ from discord.channel import TextChannel
 from discord.ui import Button, Modal, View
 from discord.ui.text_input import TextInput
 
-from utils import require_role, has_any_role
+from utils.roles import require_role, has_any_role
 from utils.ui import ModalButton
 from utils.channels import LITMUS_TESTS, WELCOME
 from utils.roles import GENERAL_MEMBER, CADRE, CENTRAL_COMMITTEE
