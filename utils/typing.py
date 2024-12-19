@@ -1,4 +1,4 @@
-from typing import Optional, Type, Literal, List, Union, TypeAlias
+from typing import Optional, Type, Literal, List, Union
 from typing_extensions import Self, TypeAlias, Callable
 
 
